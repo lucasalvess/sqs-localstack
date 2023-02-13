@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  localstack.sqs:
+    image: 'localstack/localstack'
+    container_name: 'localstack'
+    environment:
+      - SERVICES=sqs
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=xxx
+      - AWS_SECRET_ACCESS_KEY=xxx
+    ports:
+      - '4566:4566'
+    volumes:
+      - "localstack-vol:/tmp/localstack"
+
+volumes:
+  localstack-vol:
+    driver: local
+
+networks:
+  my-network:
+    driver: bridge
