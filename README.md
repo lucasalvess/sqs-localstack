@@ -1,35 +1,52 @@
-## SQS Localstack
+## SQS with AWS localstack
 
-An consumer and producer sqs using localstack and spting boot API.
+SQS listener and producer SpringBoot application, with docker AWS localstack structure.
 
 ### Stack
 
 - Java 17
 - Gradle 7.6
-- Docker
+- AWS Localstack
 
 ### How to run
 
-#### Locally, only dependencies
+Running localstack image:
+```shell
+$ docker compose -f docker/docker-compose-dev.yml up -d
+```
 
-Run docker compose command:
+*This command will run:*
 
-````shell
-$ docker compose docker/docker-compose-dev -up -d
-````
-*Will be executed localstack on port 4566*
+- **localstack** : 4566
 
-After this, access localstack container
-
-````shell
+Access AWS localstack container:
+```shell
 $ docker exec -it localstack sh
-````
+```
 
-Creating a queue...
+Creating dead letter queue:
+```shell
+$ aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name my-queue_dlq
+```
+
+Creating main queue and associate with dlq after 3 times:
+```shell
+$ aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name my-queue --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:000000000000:my-queue_dlq\",\"maxReceiveCount\":\"3\"}"}'
+```
+
+### Manage messages by cli
+
+Accessing localstack container, we can send messages running de the command:
 
 ```shell
-$ aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name my-queue
+$ aws --endpoint-url http://localhost:4566 sqs send-message --queue-url http://localhost:4566/000000000000/my-queue --message-body '{"key":"val"}'
 ```
+
+We also can read queue messages running:
+```shell
+$ aws --endpoint-url http://localhost:4566 sqs receive-message --queue-url http://localhost:4566/000000000000/my-queue --attribute-names All  --message-attribute-names All  --max-number-of-messages 10
+```
+
 ### Running the application
 
 ```shell
@@ -68,4 +85,4 @@ All messages sent are logged in application output
 
 ## Documentation
 
-- [Swagger](http://localhost:8082/swagger-ui/index.html)
+- [Swagger](http://localhost:8082/)
